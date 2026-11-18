@@ -37,6 +37,27 @@ jobs:
           unzip -o FaaeTVNext-Android-Source.zip
           ls -la
 
+      - name: Fix Java Kotlin JVM target
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          files = list(Path("FaaeTVNext-Android/app").glob("build.gradle*"))
+          if not files:
+              raise SystemExit("App Gradle file not found")
+
+          for p in files:
+              s = p.read_text()
+              s = s.replace(
+                  "JavaVersion.VERSION_1_8",
+                  "JavaVersion.VERSION_17"
+              )
+              s = s.replace('jvmTarget = "1.8"', 'jvmTarget = "17"')
+              s = s.replace("jvmTarget = '1.8'", "jvmTarget = '17'")
+              p.write_text(s)
+              print("Updated:", p)
+          PY
+          
       - name: Build APK
         working-directory: FaaeTVNext-Android
         run: gradle :app:assembleDebug --no-daemon
